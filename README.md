@@ -13,22 +13,37 @@ dashboard and embed them on any website with a small vanilla JS SDK.
 
 ## Quick Start
 
+**1. Clone and install:**
 ```bash
-# 1. Install deps
+git clone https://github.com/ATayyub/onboardMe.git
+cd onboardMe
 npm install
+```
 
-# 2. Configure environment (.env.local)
-DATABASE_URL=postgresql://postgres@localhost:5432/onboardme
-NEXTAUTH_SECRET=<run: openssl rand -base64 32>
-NEXTAUTH_URL=http://localhost:3000
+**2. Set up environment variables:**
+```bash
+cp .env.local.example .env.local
+```
 
-# 3. Apply schema
-npx prisma migrate deploy
-npx prisma generate
+Then edit `.env.local`:
+- **`DATABASE_URL`** — Update to your own PostgreSQL database
+  - Local: `postgresql://postgres@localhost:5432/onboardme`
+  - Supabase: Use the pooler host (see Deployment section)
+- **`NEXTAUTH_SECRET`** — Generate with `openssl rand -base64 32`
+- **`NEXTAUTH_URL`** — Keep as `http://localhost:3000` for local dev
+- **`ADMIN_EMAIL`** — Your email for `/admin` dashboard access
 
-# 4. Run
+**3. Apply database schema:**
+```bash
+npx prisma migrate dev
+```
+
+**4. Run:**
+```bash
 npm run dev          # http://localhost:3000
 ```
+
+Visit `http://localhost:3000/signup` to create an account.
 
 ## How It Works
 
