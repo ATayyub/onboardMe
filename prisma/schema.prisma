@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organisation {
+  id            String   @id @default(cuid())
+  email         String   @unique @db.VarChar(255)
+  passwordHash  String   @db.VarChar(255)
+  name          String   @db.VarChar(255)
+  apiKey        String   @unique @db.VarChar(255)
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+
+  flows Flow[]
+
+  @@map("organisations")
+}
+
+model Flow {
+  id        String   @id @default(cuid())
+  orgId     String   @db.VarChar(191)
+  name      String   @db.VarChar(255)
+  status    String   @default("draft") @db.VarChar(50) // draft, live, archived
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  organisation  Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  versions      FlowVersion[]
+  analyticsEvents AnalyticsEvent[]
+
+  @@index([orgId])
+  @@map("flows")
+}
+
+model FlowVersion {
+  id          String   @id @default(cuid())
+  flowId      String   @db.VarChar(191)
+  versionNum  Int      @default(1)
+  config      Json     // JSON config of the flow steps
+  publishedAt DateTime @default(now()) @db.Timestamp(6)
+
+  flow Flow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  @@unique([flowId, versionNum])
+  @@index([flowId])
+  @@map("flow_versions")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  flowId    String   @db.VarChar(191)
+  userId    String?  @db.VarChar(255)
+  eventType String   @db.VarChar(50) // flow_started, step_viewed, flow_completed, flow_dismissed
+  stepIndex Int?
+  url       String?  @db.Text
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  flow Flow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  @@index([flowId])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
