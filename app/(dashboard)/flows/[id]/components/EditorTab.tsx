@@ -102,7 +102,7 @@ export function EditorTab({
       </div>
 
       <div className="col-span-1">
-        <div className="bg-white rounded-lg border p-6 sticky top-8">
+        <div className="bg-white rounded-lg border p-6 sticky top-20">
           {editingStep ? (
             <>
               <h2 className="text-lg font-bold mb-4">Edit Step</h2>

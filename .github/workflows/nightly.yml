@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check /api/health
+      - name: Check /api/health (production)
         run: |
           RESPONSE=$(curl -sf https://onboardme-gules.vercel.app/api/health)
           echo "Response: $RESPONSE"
@@ -36,7 +36,11 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run E2E smoke tests
+        # Use STAGING_URL when available to avoid polluting production data.
+        # The nightly health check above still always targets production.
         run: npm run test:prod
+        env:
+          BASE_URL: ${{ vars.STAGING_URL || 'https://onboardme-gules.vercel.app' }}
 
       - name: Upload test results on failure
         if: failure()

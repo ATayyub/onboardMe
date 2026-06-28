@@ -47,7 +47,7 @@ export default function AdminPage() {
       }
       const data = await res.json();
       setStats(data);
-    } catch (err) {
+    } catch {
       setError("Error loading admin data");
     } finally {
       setLoading(false);
@@ -85,7 +85,6 @@ export default function AdminPage() {
         <p className="text-gray-600">Track OnboardMe signups and usage</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <p className="text-sm text-gray-600 uppercase font-medium">Total Signups</p>
@@ -101,7 +100,6 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Orgs Table */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="border-b bg-gray-50 px-6 py-4">
           <h2 className="font-bold text-gray-900">All Organisations</h2>
@@ -116,9 +114,7 @@ export default function AdminPage() {
                 <tr className="border-b bg-gray-50">
                   <th className="px-6 py-3 text-left font-medium text-gray-900">Email</th>
                   <th className="px-6 py-3 text-left font-medium text-gray-900">Name</th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-900">
-                    Signed Up
-                  </th>
+                  <th className="px-6 py-3 text-left font-medium text-gray-900">Signed Up</th>
                   <th className="px-6 py-3 text-left font-medium text-gray-900">Flows</th>
                   <th className="px-6 py-3 text-left font-medium text-gray-900">Events</th>
                 </tr>
@@ -126,9 +122,7 @@ export default function AdminPage() {
               <tbody>
                 {stats.orgs.map((org) => (
                   <tr key={org.id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-gray-900 font-mono text-xs">
-                      {org.email}
-                    </td>
+                    <td className="px-6 py-3 text-gray-900 font-mono text-xs">{org.email}</td>
                     <td className="px-6 py-3 text-gray-600">{org.name}</td>
                     <td className="px-6 py-3 text-gray-600 text-xs">
                       {new Date(org.createdAt).toLocaleDateString("en-US", {
@@ -149,7 +143,6 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* Footer */}
       <div className="mt-8 text-center">
         <Link
           href="/dashboard"

@@ -27,6 +27,10 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/tsc-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/test-staleness.sh"
           }
         ]
       },
@@ -36,6 +40,10 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/tsc-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/test-staleness.sh"
           }
         ]
       }

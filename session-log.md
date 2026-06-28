@@ -134,6 +134,70 @@
 
 ---
 
+## Phase 10: Audit Fixes — 2026-06-28
+
+### Immediate Fixes
+- ✅ Fixed XSS in `sdk.js` — added `escapeHtml()`, all step content escaped before `innerHTML`
+- ✅ Fixed `sdk.js` baseUrl default — removed `|| 'http://localhost:3000'`, now errors clearly if baseUrl missing
+- ✅ Fixed `signup/route.ts` — removed `new PrismaClient()`, now imports from `lib/prisma` singleton
+- ✅ Fixed `lib/prisma.ts` — singleton now applies in ALL environments (was dev-only, leaked connections in prod)
+
+### Short-Term Improvements
+- ✅ Added localStorage draft persistence to flow editor — auto-saves on every change, restores on page load, cleared on publish, shows discard banner
+- ✅ Added pagination to analytics endpoint — supports `page`/`limit` query params, summary always counts all events
+- ✅ Updated AnalyticsTab — shows "X–Y of Z" count, Prev/Next pagination controls, only renders when >1 page
+- ✅ Added DB-based rate limiting on `/api/sdk/[flowId]/events` — 200 events/flow/60s, returns 429 when exceeded
+
+### Deployment Fixes
+- ✅ Installed `@sentry/nextjs`, created `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`, `app/instrumentation.ts`
+- ✅ Created `next.config.ts` with `withSentryConfig` wrapper — no-op when `NEXT_PUBLIC_SENTRY_DSN` not set
+- ✅ Updated `.env.local.example` with Sentry vars documentation
+- ✅ Updated both CI workflows (`ci.yml`, `nightly.yml`) to use `STAGING_URL` repo variable when set, falling back to prod
+- ⚠️ UptimeRobot: requires manual setup at uptimerobot.com — monitor `https://onboardme-gules.vercel.app/api/health`
+- ⚠️ Sentry DSN: requires creating a project at sentry.io — add `NEXT_PUBLIC_SENTRY_DSN` to Vercel env vars
+- ⚠️ Staging environment: requires creating a new Supabase project + Vercel preview deployment — set `STAGING_URL` as GitHub repo variable
+
+### Agentic Improvements
+- ✅ Added `.claude/hooks/session-init.sh` — prints current phase, next pending task, last E2E run status on session start
+- ✅ Added `.claude/hooks/test-staleness.sh` — warns when test results are >1h old after any source file edit
+- ✅ Updated `.claude/settings.json` — registered test-staleness hook on both Edit and Write PostToolUse
+- ✅ Updated `CLAUDE.md` — Session Start Protocol section, Skill Auto-Detection table, deployment and Sentry notes
+
+**Type check**: `npx tsc --noEmit` → zero errors ✅
+
+### Long-Term Platform Vision — 2026-06-28
+
+#### Item 14: ADR-006 Route Group Refactor
+- ✅ Created `app/(auth)/layout.tsx` — shared navbar with 🦙 logo + back-to-home centering, both auth pages now consistent
+- ✅ Moved `app/login/page.tsx` → `app/(auth)/login/page.tsx` — login page is now just the card (layout handles centering)
+- ✅ Moved `app/signup/page.tsx` → `app/(auth)/signup/page.tsx` — removed duplicate header (layout provides it)
+- ✅ Created `app/(dashboard)/layout.tsx` — sticky header with logo + sign-out button, shared across all dashboard pages
+- ✅ Moved `app/dashboard/page.tsx` → `app/(dashboard)/dashboard/page.tsx` — removed inline header (layout handles it)
+- ✅ Moved `app/flows/[id]/*` → `app/(dashboard)/flows/[id]/*` — flow editor now gets the top nav for free
+- ✅ Moved `app/admin/page.tsx` → `app/(dashboard)/admin/page.tsx` — admin also gets shared nav
+- ✅ Deleted empty legacy directories (login, signup, dashboard, admin, flows)
+- URLs unchanged: `/login`, `/signup`, `/dashboard`, `/flows/[id]`, `/admin` — route groups are invisible to the router
+
+#### Item 15: Per-org CORS Domain Allowlist
+- ✅ Added `allowedDomains String @default("[]") @db.Text` to `Organisation` model in schema.prisma
+- ✅ Created `prisma/migrations/1_add_allowed_domains/migration.sql` — ready for `prisma migrate deploy`
+- ✅ Ran `prisma generate` to regenerate client types
+- ✅ Created `lib/cors.ts` — `buildCorsHeaders(allowedDomainsJson, requestOrigin, methods)` helper; empty array → `*`, matched origin → exact origin + `Vary: Origin`, no match → omit header (browser blocks)
+- ✅ Updated `/api/sdk/[flowId]/config` — fetches org.allowedDomains via flow→org join, uses cors helper
+- ✅ Updated `/api/sdk/[flowId]/events` — same pattern, POST methods
+- ✅ Created `app/api/org/domains/route.ts` — GET returns current domains, PUT validates & saves (max 20, pattern check)
+- ✅ Updated `InstallTab.tsx` — domain management UI: list domains with Remove buttons, add input with Enter support, error messages
+
+#### Item 17: Funnel Analytics
+- ✅ Updated `/api/dashboard/analytics` — added `funnel` field: `started`, `steps[]` (stepIndex + label from flow config + count + rate vs started), `completed`, `completionRate`; uses Prisma `groupBy` on `step_viewed` events; returns `null` when no `flow_started` events yet
+- ✅ Updated `AnalyticsTab.tsx` — new Funnel section with horizontal bar chart (blue bars, green for Completed); shows count + percentage for each step; only renders when `funnel.started > 0`
+- ✅ Reorganized AnalyticsTab layout: Overview card → Funnel card → Events table
+
+**Type check**: `npx tsc --noEmit` → zero errors ✅
+⚠️ DB migration pending: `npx prisma migrate deploy` needed when DATABASE_URL is available
+
+---
+
 ## Current Day
 
 **Day**: 2

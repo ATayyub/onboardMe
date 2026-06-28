@@ -11,12 +11,13 @@ datasource db {
 }
 
 model Organisation {
-  id            String   @id @default(cuid())
-  email         String   @unique @db.VarChar(255)
-  passwordHash  String   @db.VarChar(255)
-  name          String   @db.VarChar(255)
-  apiKey        String   @unique @db.VarChar(255)
-  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  id             String   @id @default(cuid())
+  email          String   @unique @db.VarChar(255)
+  passwordHash   String   @db.VarChar(255)
+  name           String   @db.VarChar(255)
+  apiKey         String   @unique @db.VarChar(255)
+  allowedDomains String   @default("[]") @db.Text
+  createdAt      DateTime @default(now()) @db.Timestamp(6)
 
   flows Flow[]
 

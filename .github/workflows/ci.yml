@@ -25,7 +25,11 @@ jobs:
         run: npx tsc --noEmit
 
   e2e:
-    name: E2E Tests (production)
+    # Runs against STAGING_URL when set (prevents test pollution in production).
+    # To enable: add STAGING_URL as a GitHub repo variable pointing to a staging
+    # Vercel deployment with its own Supabase project.
+    # Until then this falls back to the production URL.
+    name: E2E Tests
     runs-on: ubuntu-latest
     needs: typecheck
 
@@ -45,6 +49,8 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:prod
+        env:
+          BASE_URL: ${{ vars.STAGING_URL || 'https://onboardme-gules.vercel.app' }}
 
       - name: Upload test results on failure
         if: failure()

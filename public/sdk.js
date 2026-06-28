@@ -1,11 +1,26 @@
 (function() {
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   window.OnboardMe = {
     init: async function(flowId, options = {}) {
-      const baseUrl = options.baseUrl || 'http://localhost:3000';
+      const baseUrl = options.baseUrl;
       const userId = options.userId || null;
 
       if (!flowId) {
         console.error('OnboardMe: flowId is required');
+        return;
+      }
+
+      if (!baseUrl) {
+        console.error('OnboardMe: baseUrl is required. Example: OnboardMe.init(\'' + flowId + '\', { baseUrl: \'https://your-onboardme-url.com\' })');
         return;
       }
 
@@ -53,17 +68,17 @@
         dialog.innerHTML = `
           <div style="text-align: center;">
             <h2 style="margin: 0 0 12px 0; font-size: 24px; font-weight: bold; color: #1a1a1a;">
-              ${step.title || 'Step ' + (currentStep + 1)}
+              ${escapeHtml(step.title) || 'Step ' + (currentStep + 1)}
             </h2>
             <p style="margin: 0 0 28px 0; color: #666; line-height: 1.5;">
-              ${step.description || ''}
+              ${escapeHtml(step.description)}
             </p>
             <p style="margin: 0 0 24px 0; font-size: 13px; color: #999;">
               Step ${currentStep + 1} of ${steps.length}
             </p>
             <div style="display: flex; gap: 12px; justify-content: center;">
               ${currentStep > 0 ? `<button id="prev" style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-weight: 500; transition: all 0.2s;">Back</button>` : ''}
-              ${currentStep < steps.length - 1 ? `<button id="next" style="padding: 10px 20px; background: black; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; hover: background: #333;">Next</button>` : `<button id="finish" style="padding: 10px 20px; background: black; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s;">Done</button>`}
+              ${currentStep < steps.length - 1 ? `<button id="next" style="padding: 10px 20px; background: black; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s;">Next</button>` : `<button id="finish" style="padding: 10px 20px; background: black; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s;">Done</button>`}
             </div>
           </div>
         `;

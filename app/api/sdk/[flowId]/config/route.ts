@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildCorsHeaders } from "@/lib/cors";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
-
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: CORS_HEADERS });
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  // For preflight we don't know the org yet — allow all (browser will validate on actual request)
+  return NextResponse.json({}, {
+    headers: {
+      "Access-Control-Allow-Origin": origin || "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      ...(origin ? { "Vary": "Origin" } : {}),
+    },
+  });
 }
 
 export async function GET(
@@ -16,22 +20,31 @@ export async function GET(
   { params }: { params: Promise<{ flowId: string }> }
 ) {
   const { flowId } = await params;
+  const requestOrigin = request.headers.get("origin");
 
   try {
-    // Get the flow
     const flow = await prisma.flow.findUnique({
       where: { id: flowId },
-      select: { id: true, name: true, status: true },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        organisation: { select: { allowedDomains: true } },
+      },
     });
+
+    const corsHeaders = buildCorsHeaders(
+      flow?.organisation?.allowedDomains ?? "[]",
+      requestOrigin
+    );
 
     if (!flow || flow.status !== "live") {
       return NextResponse.json(
         { error: "Flow not found or not live" },
-        { status: 404, headers: CORS_HEADERS }
+        { status: 404, headers: corsHeaders }
       );
     }
 
-    // Get the latest published version
     const latestVersion = await prisma.flowVersion.findFirst({
       where: { flowId },
       orderBy: { versionNum: "desc" },
@@ -41,7 +54,7 @@ export async function GET(
     if (!latestVersion) {
       return NextResponse.json(
         { error: "No published version found" },
-        { status: 404, headers: CORS_HEADERS }
+        { status: 404, headers: corsHeaders }
       );
     }
 
@@ -52,13 +65,13 @@ export async function GET(
         version: latestVersion.versionNum,
         config: latestVersion.config,
       },
-      { status: 200, headers: CORS_HEADERS }
+      { status: 200, headers: corsHeaders }
     );
   } catch (error) {
     console.error("GET /api/sdk/[flowId]/config error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500, headers: CORS_HEADERS }
+      { status: 500 }
     );
   }
 }
