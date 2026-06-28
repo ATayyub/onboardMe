@@ -32,15 +32,18 @@ Work is organized into **9 phases** (not days), each deliverable independently:
 - [x] Analytics events appear in the dashboard
 - [x] All 7 API routes return correct shapes under happy-path manual tests
 
-**Verified 2026-05-31** via comprehensive E2E verification:
-- Signup: Created `poc-test-2026@example.com`, auto-logged in ✅
-- Flow CRUD: Created "POC Test Flow", edited title/description, published (Draft→Live) ✅
-- SDK: Opened test.html, loaded flow via SDK, modal rendered with correct step content ✅
-- Analytics: Dashboard showed 2 events (flow_started, flow_completed) with correct user ID ✅
-- API routes: Tested `/api/sdk/[flowId]/config` returned `{id, name, version, config}` with HTTP 200 and CORS headers ✅
-- Bug fixed: Home page had onClick in server component → converted to "use client" ✅
+**Verified 2026-06-28** via live E2E smoke test on production (https://onboardme-gules.vercel.app):
+- Signup: Created `smoke-test-2026-06-28@example.com`, auto-redirected to dashboard ✅
+- Flow CRUD: Created "Smoke Test Onboarding" (2 steps), published (Draft→Live) ✅
+- SDK: Opened `/test.html`, loaded flow, modal rendered Step 1 of 2 → Next → Step 2 → Done ✅
+- Analytics: Dashboard showed 3 events — `flow_started`, `step_viewed`, `flow_completed` ✅
+- SDK config: `GET /api/sdk/[flowId]/config` returned `{id, name, version:1, config:[...]}` with CORS headers ✅
+- Health endpoint: `GET /api/health` returns `{"status":"ok","db":"ok"}` ✅
+- Vercel Analytics + Speed Insights: active and collecting ✅
 
-Running on local PostgreSQL (localhost:5432/onboardme).
+Previous local verification: 2026-05-31 (local PostgreSQL).
+Production database: Supabase project `yhrqsqugupsyywmpkikx` (us-east-1, pooler mode).
+Note: Supabase free tier pauses after 7 days of inactivity — set up UptimeRobot on `/api/health` to prevent.
 
 ## Scope Boundaries (hard stops)
 - No A/B testing
