@@ -40,9 +40,12 @@ export function EditorTab({
           <h2 className="text-lg font-bold mb-4">Steps ({steps.length})</h2>
           <div className="space-y-3 mb-4">
             {steps.length === 0 ? (
-              <p className="text-gray-500 text-sm p-4 bg-gray-50 rounded-lg border-2 border-dashed">
-                No steps yet. Add your first step below to get started.
-              </p>
+              <div className="p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 text-center">
+                <p className="text-sm font-medium text-gray-700 mb-1">No steps yet</p>
+                <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                  Each step is a screen your users will see. Add a title and description, then publish when ready.
+                </p>
+              </div>
             ) : (
               steps.map((step, index) => (
                 <div

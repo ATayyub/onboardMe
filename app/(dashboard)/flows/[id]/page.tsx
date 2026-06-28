@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { EditorTab } from "./components/EditorTab";
 import { AnalyticsTab } from "./components/AnalyticsTab";
 import { InstallTab } from "./components/InstallTab";
@@ -53,7 +53,6 @@ type View = "editor" | "analytics" | "install";
 const draftKey = (id: string) => `onboardme-draft-${id}`;
 
 export default function FlowEditorPage() {
-  const router = useRouter();
   const params = useParams();
   const flowId = params.id as string;
   const { data: session } = useSession();
@@ -69,6 +68,7 @@ export default function FlowEditorPage() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsPage, setAnalyticsPage] = useState(1);
   const [hasDraft, setHasDraft] = useState(false);
+  const [justPublished, setJustPublished] = useState(false);
 
   useEffect(() => {
     if (session) fetchFlow();
@@ -169,7 +169,10 @@ export default function FlowEditorPage() {
       });
       if (res.ok) {
         localStorage.removeItem(draftKey(flowId));
-        router.push("/dashboard");
+        setHasDraft(false);
+        setFlow((prev) => prev ? { ...prev, status: "live" } : prev);
+        setJustPublished(true);
+        setView("install");
       } else {
         const data = await res.json();
         setPublishError(data.error || "Failed to publish. Please try again.");
@@ -179,6 +182,11 @@ export default function FlowEditorPage() {
     } finally {
       setPublishing(false);
     }
+  };
+
+  const handleTabChange = (key: View) => {
+    if (key !== "install") setJustPublished(false);
+    setView(key);
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
@@ -196,14 +204,18 @@ export default function FlowEditorPage() {
         <div>
           <h1 className="text-3xl font-bold mb-2">{flow.name}</h1>
           <p className="text-gray-600 text-sm">
-            {view === "editor" ? "Build and publish your flow" : "View analytics and events"}
+            {view === "editor"
+              ? "Build and publish your flow"
+              : view === "install"
+              ? "Install your flow on your website"
+              : "View analytics and events"}
           </p>
         </div>
         <div className="flex gap-2">
           {tabs.map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => setView(key)}
+              onClick={() => handleTabChange(key)}
               className={`px-4 py-2 rounded font-medium text-sm ${
                 view === key ? "bg-black text-white" : "bg-gray-100 text-gray-900 hover:bg-gray-200"
               }`}
@@ -213,6 +225,18 @@ export default function FlowEditorPage() {
           ))}
         </div>
       </div>
+
+      {flow.status === "live" && view !== "install" && (
+        <div className="mb-4 flex items-center justify-between bg-white border border-[#e5e5e5] rounded-lg px-4 py-3 text-sm">
+          <span className="text-black">Your flow is live</span>
+          <button
+            onClick={() => handleTabChange("install")}
+            className="ml-4 text-black underline hover:text-[#525252] whitespace-nowrap"
+          >
+            View install code →
+          </button>
+        </div>
+      )}
 
       {hasDraft && view === "editor" && (
         <div className="mb-4 flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm">
@@ -253,7 +277,8 @@ export default function FlowEditorPage() {
         <InstallTab
           flowId={flowId}
           flowStatus={flow.status}
-          onSwitchToEditor={() => setView("editor")}
+          justPublished={justPublished}
+          onSwitchToEditor={() => handleTabChange("editor")}
         />
       )}
     </div>

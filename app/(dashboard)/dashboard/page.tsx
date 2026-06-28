@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface Flow {
@@ -12,6 +13,7 @@ interface Flow {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [flows, setFlows] = useState<Flow[]>([]);
   const [loading, setLoading] = useState(true);
   const [newFlowName, setNewFlowName] = useState("");
@@ -63,8 +65,12 @@ export default function DashboardPage() {
       });
 
       if (res.ok) {
-        setNewFlowName("");
-        fetchFlows();
+        const newFlow = await res.json();
+        if (newFlow?.id) {
+          router.push(`/flows/${newFlow.id}`);
+        } else {
+          setError("Failed to create flow");
+        }
       } else {
         const data = await res.json();
         setError(data.error || "Failed to create flow");
