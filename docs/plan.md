@@ -301,6 +301,51 @@ All tests must pass before Phase 3.
 
 ---
 
+### Phase 10: Per-Flow Theming — Backend & SDK
+
+**Duration**: ~0.5 day | **Skills to use**: `.claude/skills/prisma-migration.md`, `.claude/skills/build-api-route.md`, `.claude/skills/sdk-change.md`
+
+**What it delivers**: Each published flow can carry brand colors (accent, background, text); the SDK renders the modal in those colors. Strictly additive — flows with no theme render exactly as today.
+
+**Design decisions** (chosen with the user):
+- **Manual theme config**, not auto-inheritance from the host page.
+- **Scope**: `primaryColor` (accent / buttons), `backgroundColor` (dialog), `textColor` (title + body). Button label color auto-contrasts for readability.
+- **Storage**: nullable `theme Json?` on `FlowVersion` — respects append-only (theme rides each published version); `null` ⇒ SDK uses current hardcoded defaults. No backfill.
+- **Theme shape**: `{ "primaryColor": "#000000", "backgroundColor": "#ffffff", "textColor": "#1a1a1a" }`.
+
+| Task | Subtasks | Done |
+|------|----------|------|
+| **10.1 Schema + migration** | - Add `theme Json?` (nullable) to `FlowVersion` in `prisma/schema.prisma`<br>- Applied to local Postgres as migration `2_add_flow_version_theme` (via `migrate diff` + `migrate deploy`, since `migrate dev` needs an interactive shell)<br>- Verified column `theme jsonb` (nullable) present; existing versions `null` | [x] |
+| **10.2 Publish API accepts theme** | - In `app/api/flows/[id]/publish/route.ts`, read optional `theme` from body<br>- `validateTheme()` rejects malformed (non-hex / unknown keys); omitted ⇒ store `null`<br>- Persist on the new `FlowVersion` (append-only preserved) | [x] |
+| **10.3 Config endpoint returns theme** | - In `app/api/sdk/[flowId]/config/route.ts`, added `theme` to the version `select` and response (`null` when absent)<br>- CORS headers unchanged | [x] |
+| **10.4 SDK applies theme** | - In `public/sdk.js`, reads `config.theme`; applies to dialog background, title/body text, and buttons via existing inline styles<br>- Falls back to defaults when theme is `null`/missing<br>- Added `contrastColor()` helper for button label readability<br>- Zero deps, `showModal()`, styles scoped to the dialog | [x] |
+| **10.5 Smoke test (sdk-change skill)** | - Themed flow rendered via `test.html`: bg `#f5f3ff`, title `#2e1065`, button `#6d28d9` + white label; Next advances<br>- Un-themed flow confirmed unchanged (white/black/#1a1a1a) — no regression<br>- Config endpoint returns `theme`; `tsc` clean | [x] |
+| **10.6 Commit** | - Committed locally. **NOT pushed** — must apply the prod migration first (see deploy note) | [x] |
+
+**Verification**: A themed flow renders in its colors; un-themed flows are visually unchanged; `npx tsc --noEmit` clean. ✅
+
+> **⚠️ Deploy ordering (prod):** The publish + config routes now `SELECT theme`. Deploying this code to prod **before** the `theme` column exists there would 500 the live config endpoint and break the SDK for existing flows. Run `prisma migrate deploy` against production (needs the Supabase **direct** connection string) **before/with** pushing this code.
+
+---
+
+### Phase 11: Per-Flow Theming — Editor UI
+
+**Duration**: ~0.5 day | **Skills to use**: `.claude/skills/verify-feature.md`
+
+**What it delivers**: Clients pick their brand colors in the flow editor and publish them with the flow.
+
+| Task | Subtasks | Done |
+|------|----------|------|
+| **11.1 Theme controls in editor** | - Add a "Theme" section to `app/(dashboard)/flows/[id]/components/EditorTab.tsx`<br>- 3 × `<input type="color">` with hex display for primary / background / text<br>- Extend `Props` with `theme` + `onUpdateTheme` | [ ] |
+| **11.2 Theme state in parent** | - In `app/(dashboard)/flows/[id]/page.tsx`, hold `theme` state (default to current look)<br>- Pass `theme`/`onUpdateTheme` to `EditorTab`<br>- Include `theme` in the publish request body | [ ] |
+| **11.3 Load saved theme on edit** | - Confirm `app/api/flows/[id]/route.ts` returns the latest version's `theme`<br>- Initialize editor state from it (defaults when `null`) so re-editing shows saved colors | [ ] |
+| **11.4 Verify (verify-feature skill)** | - `npx tsc --noEmit`<br>- Set colors → publish → reload editor shows them → load via `test.html` shows them<br>- Update `session-log.md` (theming is a deliberate post-MVP feature add) | [ ] |
+| **11.5 Commit** | - `git commit -m "Phase 11: per-flow theming — editor UI"` | [ ] |
+
+**Verification**: Colors set in the editor persist across publish/reload and render correctly via the SDK.
+
+---
+
 ## POC Completion Criteria (from memory/project.md)
 
 All of these must be ✅ before shipping:

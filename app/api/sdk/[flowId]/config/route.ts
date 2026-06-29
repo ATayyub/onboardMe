@@ -48,7 +48,7 @@ export async function GET(
     const latestVersion = await prisma.flowVersion.findFirst({
       where: { flowId },
       orderBy: { versionNum: "desc" },
-      select: { id: true, versionNum: true, config: true, publishedAt: true },
+      select: { id: true, versionNum: true, config: true, theme: true, publishedAt: true },
     });
 
     if (!latestVersion) {
@@ -64,6 +64,7 @@ export async function GET(
         name: flow.name,
         version: latestVersion.versionNum,
         config: latestVersion.config,
+        theme: latestVersion.theme ?? null,
       },
       { status: 200, headers: corsHeaders }
     );

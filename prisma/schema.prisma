@@ -44,6 +44,7 @@ model FlowVersion {
   flowId      String   @db.VarChar(191)
   versionNum  Int      @default(1)
   config      Json     // JSON config of the flow steps
+  theme       Json?    // optional brand colors { primaryColor, backgroundColor, textColor }; null = SDK defaults
   publishedAt DateTime @default(now()) @db.Timestamp(6)
 
   flow Flow @relation(fields: [flowId], references: [id], onDelete: Cascade)
