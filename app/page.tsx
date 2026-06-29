@@ -50,11 +50,6 @@ export default function Home() {
             No code required. Create beautiful, interactive onboarding experiences that guide users through your product without writing a single line of code.
           </p>
 
-          {/* Install Snippet Pill */}
-          <div className="bg-[#fafafa] rounded-full px-6 py-4 mb-8 inline-block border border-[#e5e5e5] font-mono text-sm text-black overflow-x-auto max-w-lg">
-            <code>npx create-onboard-app</code>
-          </div>
-
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             {session ? (
