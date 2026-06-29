@@ -353,6 +353,24 @@ Tests from `tests/phase-1-foundation.feature`:
 - [x] Analytics tab in flow editor loads
 - [x] Type-checking passes for all phases (npx tsc --noEmit)
 
+### Phase 10: Per-Flow Theming — Backend & SDK ✅ (post-MVP feature add)
+- [x] `theme Json?` (nullable) added to FlowVersion — migration `2_add_flow_version_theme`
+- [x] Migration applied to **local** Postgres only; **prod NOT yet migrated** (deferred per decision)
+- [x] Publish API accepts + validates optional `theme` (hex colors, known keys); append-only preserved
+- [x] Config endpoint returns `theme` (null when absent)
+- [x] SDK applies primaryColor/backgroundColor/textColor with auto-contrast labels; defaults preserved
+- [x] Verified: themed flow renders in-color; un-themed flow unchanged (no regression); tsc clean
+- **Committed**: [x] — Commit: 69423ce (local only, **not pushed**)
+- ⚠️ **Deploy ordering**: publish/config routes now `SELECT theme`. Run `prisma migrate deploy` on prod (needs Supabase DIRECT url) **before** pushing this code, or the live config endpoint 500s.
+
+### Phase 11: Per-Flow Theming — Editor UI ✅ (post-MVP feature add)
+- [x] Theme color controls (3 × color picker) added to EditorTab
+- [x] Theme state in flows/[id]/page.tsx; persisted in local draft; sent in publish body
+- [x] GET /api/flows/[id] returns latest version `theme`; editor seeds from it on load
+- [x] Verified E2E in browser: signup → create flow → set teal theme → publish → config returns theme → reload editor shows saved colors → SDK renders teal
+- [x] Type-checking passes (npx tsc --noEmit)
+- **Committed**: [ ] — pending (same prod deploy-ordering caveat as Phase 10)
+
 ## Blockers
 
 _Append blockers here as they are encountered. Include: description, when encountered,

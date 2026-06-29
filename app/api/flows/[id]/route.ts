@@ -24,15 +24,15 @@ export async function GET(
       return NextResponse.json({ error: "Flow not found" }, { status: 404 });
     }
 
-    // Load the latest published version's steps so the editor can show them
+    // Load the latest published version's steps + theme so the editor can show them
     const latestVersion = await prisma.flowVersion.findFirst({
       where: { flowId: id },
       orderBy: { versionNum: "desc" },
-      select: { config: true },
+      select: { config: true, theme: true },
     });
 
     return NextResponse.json(
-      { ...flow, config: latestVersion?.config ?? [] },
+      { ...flow, config: latestVersion?.config ?? [], theme: latestVersion?.theme ?? null },
       { status: 200 }
     );
   } catch (error) {

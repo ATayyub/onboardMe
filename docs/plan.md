@@ -336,13 +336,13 @@ All tests must pass before Phase 3.
 
 | Task | Subtasks | Done |
 |------|----------|------|
-| **11.1 Theme controls in editor** | - Add a "Theme" section to `app/(dashboard)/flows/[id]/components/EditorTab.tsx`<br>- 3 × `<input type="color">` with hex display for primary / background / text<br>- Extend `Props` with `theme` + `onUpdateTheme` | [ ] |
-| **11.2 Theme state in parent** | - In `app/(dashboard)/flows/[id]/page.tsx`, hold `theme` state (default to current look)<br>- Pass `theme`/`onUpdateTheme` to `EditorTab`<br>- Include `theme` in the publish request body | [ ] |
-| **11.3 Load saved theme on edit** | - Confirm `app/api/flows/[id]/route.ts` returns the latest version's `theme`<br>- Initialize editor state from it (defaults when `null`) so re-editing shows saved colors | [ ] |
-| **11.4 Verify (verify-feature skill)** | - `npx tsc --noEmit`<br>- Set colors → publish → reload editor shows them → load via `test.html` shows them<br>- Update `session-log.md` (theming is a deliberate post-MVP feature add) | [ ] |
-| **11.5 Commit** | - `git commit -m "Phase 11: per-flow theming — editor UI"` | [ ] |
+| **11.1 Theme controls in editor** | - Added a "Theme" section to `EditorTab.tsx` with 3 × `<input type="color">` + hex display for primary / background / text<br>- Extended `Props` with `theme` + `onUpdateTheme`; exported `Theme` type | [x] |
+| **11.2 Theme state in parent** | - `flows/[id]/page.tsx` holds `theme` state (defaults to current look), persists it in the local draft, and sends it in the publish body<br>- Passes `theme`/`onUpdateTheme` to `EditorTab` | [x] |
+| **11.3 Load saved theme on edit** | - `GET /api/flows/[id]` now returns the latest version's `theme`<br>- Editor seeds state from it (defaults when `null`); verified colors reappear after reload | [x] |
+| **11.4 Verify (verify-feature skill)** | - `tsc` clean<br>- E2E: signup → create flow → set teal theme → publish → config returns theme → reload editor shows saved colors → SDK renders teal<br>- `session-log.md` updated (post-MVP feature add) | [x] |
+| **11.5 Commit** | - Commit editor UI changes (local; same prod deploy-ordering caveat as Phase 10) | [x] |
 
-**Verification**: Colors set in the editor persist across publish/reload and render correctly via the SDK.
+**Verification**: Colors set in the editor persist across publish/reload and render correctly via the SDK. ✅
 
 ---
 

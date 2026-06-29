@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
-import { EditorTab } from "./components/EditorTab";
+import { EditorTab, type Theme } from "./components/EditorTab";
 import { AnalyticsTab } from "./components/AnalyticsTab";
 import { InstallTab } from "./components/InstallTab";
 
@@ -11,6 +11,12 @@ interface Step {
   title: string;
   description: string;
 }
+
+const THEME_DEFAULTS: Theme = {
+  primaryColor: "#000000",
+  backgroundColor: "#ffffff",
+  textColor: "#1a1a1a",
+};
 
 interface Flow {
   id: string;
@@ -59,6 +65,7 @@ export default function FlowEditorPage() {
 
   const [flow, setFlow] = useState<Flow | null>(null);
   const [steps, setSteps] = useState<Step[]>([]);
+  const [theme, setTheme] = useState<Theme>(THEME_DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState("");
@@ -80,9 +87,9 @@ export default function FlowEditorPage() {
 
   useEffect(() => {
     if (!loading && steps.length >= 0) {
-      localStorage.setItem(draftKey(flowId), JSON.stringify({ steps, savedAt: Date.now() }));
+      localStorage.setItem(draftKey(flowId), JSON.stringify({ steps, theme, savedAt: Date.now() }));
     }
-  }, [steps, flowId, loading]);
+  }, [steps, theme, flowId, loading]);
 
   const fetchFlow = async () => {
     try {
@@ -91,12 +98,16 @@ export default function FlowEditorPage() {
         const data = await res.json();
         setFlow(data);
 
+        // Saved theme (from the published version) seeds the editor; defaults when absent
+        if (data.theme) setTheme({ ...THEME_DEFAULTS, ...data.theme });
+
         const raw = localStorage.getItem(draftKey(flowId));
         if (raw) {
           try {
-            const { steps: draftSteps } = JSON.parse(raw);
+            const { steps: draftSteps, theme: draftTheme } = JSON.parse(raw);
             if (Array.isArray(draftSteps)) {
               setSteps(draftSteps);
+              if (draftTheme) setTheme({ ...THEME_DEFAULTS, ...draftTheme });
               setHasDraft(true);
               return;
             }
@@ -132,12 +143,13 @@ export default function FlowEditorPage() {
   const discardDraft = () => {
     localStorage.removeItem(draftKey(flowId));
     setHasDraft(false);
-    if (flow && Array.isArray((flow as Flow & { config?: Step[] }).config)) {
-      setSteps((flow as Flow & { config?: Step[] }).config || []);
-    } else {
-      setSteps([]);
-    }
+    const f = flow as (Flow & { config?: Step[]; theme?: Theme | null }) | null;
+    setSteps(Array.isArray(f?.config) ? f!.config! : []);
+    setTheme(f?.theme ? { ...THEME_DEFAULTS, ...f.theme } : THEME_DEFAULTS);
   };
+
+  const updateTheme = (updates: Partial<Theme>) =>
+    setTheme((prev) => ({ ...prev, ...updates }));
 
   const addStep = () =>
     setSteps((prev) => [...prev, { id: Date.now().toString(), title: "New Step", description: "" }]);
@@ -165,7 +177,7 @@ export default function FlowEditorPage() {
       const res = await fetch(`/api/flows/${flowId}/publish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: steps }),
+        body: JSON.stringify({ config: steps, theme }),
       });
       if (res.ok) {
         localStorage.removeItem(draftKey(flowId));
@@ -256,11 +268,13 @@ export default function FlowEditorPage() {
           editingStepId={editingStepId}
           publishing={publishing}
           publishError={publishError}
+          theme={theme}
           onAddStep={addStep}
           onRemoveStep={removeStep}
           onUpdateStep={updateStep}
           onReorderSteps={reorderSteps}
           onSelectStep={setEditingStepId}
+          onUpdateTheme={updateTheme}
           onPublish={handlePublish}
         />
       )}

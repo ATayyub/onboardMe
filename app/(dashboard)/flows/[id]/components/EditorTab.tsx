@@ -6,16 +6,30 @@ interface Step {
   description: string;
 }
 
+export interface Theme {
+  primaryColor: string;
+  backgroundColor: string;
+  textColor: string;
+}
+
+const THEME_FIELDS: { key: keyof Theme; label: string; hint: string }[] = [
+  { key: "primaryColor", label: "Accent / buttons", hint: "Next, Back & Done buttons" },
+  { key: "backgroundColor", label: "Background", hint: "Modal background" },
+  { key: "textColor", label: "Text", hint: "Title & body text" },
+];
+
 interface Props {
   steps: Step[];
   editingStepId: string | null;
   publishing: boolean;
   publishError: string;
+  theme: Theme;
   onAddStep: () => void;
   onRemoveStep: (id: string) => void;
   onUpdateStep: (id: string, updates: Partial<Step>) => void;
   onReorderSteps: (from: number, to: number) => void;
   onSelectStep: (id: string | null) => void;
+  onUpdateTheme: (updates: Partial<Theme>) => void;
   onPublish: () => void;
 }
 
@@ -24,11 +38,13 @@ export function EditorTab({
   editingStepId,
   publishing,
   publishError,
+  theme,
   onAddStep,
   onRemoveStep,
   onUpdateStep,
   onReorderSteps,
   onSelectStep,
+  onUpdateTheme,
   onPublish,
 }: Props) {
   const editingStep = steps.find((s) => s.id === editingStepId);
@@ -101,6 +117,33 @@ export function EditorTab({
           >
             + Add Step
           </button>
+        </div>
+
+        <div className="bg-white rounded-lg border p-6 mt-6">
+          <h2 className="text-lg font-bold mb-1">Theme</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Brand colors for the onboarding modal. Defaults match a clean black-and-white look.
+          </p>
+          <div className="space-y-3">
+            {THEME_FIELDS.map(({ key, label, hint }) => (
+              <div key={key} className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{label}</p>
+                  <p className="text-xs text-gray-500">{hint}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-gray-500 uppercase">{theme[key]}</span>
+                  <input
+                    type="color"
+                    value={theme[key]}
+                    onChange={(e) => onUpdateTheme({ [key]: e.target.value })}
+                    className="h-8 w-12 rounded border border-gray-300 cursor-pointer bg-white p-0.5"
+                    aria-label={label}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
