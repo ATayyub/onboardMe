@@ -45,6 +45,11 @@
       // Create modal dialog
       const dialog = document.createElement('dialog');
       dialog.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
         border: none;
         border-radius: 12px;
         padding: 40px;
@@ -83,9 +88,9 @@
           </div>
         `;
 
-        const nextBtn = document.getElementById('next');
-        const prevBtn = document.getElementById('prev');
-        const finishBtn = document.getElementById('finish');
+        const nextBtn = dialog.querySelector('#next');
+        const prevBtn = dialog.querySelector('#prev');
+        const finishBtn = dialog.querySelector('#finish');
 
         if (nextBtn) {
           nextBtn.addEventListener('click', () => {
