@@ -11,12 +11,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span className="text-xl">🦙</span>
             <span className="font-medium text-sm text-black">OnboardMe</span>
           </Link>
-          <button
-            onClick={() => signOut({ redirect: true })}
-            className="text-sm text-[#737373] hover:text-black transition-colors"
-          >
-            Sign out
-          </button>
+          <div className="flex items-center gap-6">
+            <Link
+              href="/dashboard"
+              className="text-sm text-[#737373] hover:text-black transition-colors"
+            >
+              Dashboard
+            </Link>
+            <button
+              onClick={() => signOut({ redirect: true })}
+              className="text-sm text-[#737373] hover:text-black transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
       {children}
